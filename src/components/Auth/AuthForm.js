@@ -18,36 +18,42 @@ const AuthForm = () => {
 
     const enteredMail = emailRef.current.value;
     const enteredPassword = passwordRef.current.value;
-    setIsLoading(true); 
+    setIsLoading(true);
+    let url;
     if (isLogin) {
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyC2aWDHltsNHS2_AoE5WAwW53OyqeItl4g";
     } else {
-      fetch(
-        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyC2aWDHltsNHS2_AoE5WAwW53OyqeItl4g",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email: enteredMail,
-            password: enteredPassword,
-            returnSecureToken: true,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      ).then((res) => {
-        setIsLoading(false)
-        if (res.ok) {
-        } else {
-          return res.json().then((data) => {
-            let errorMessage = 'Authentication Failed!!'
-            if(data && data.error && data.error.message){
-              errorMessage = data.error.message; 
-            }
-            alert(errorMessage);
-          });
-        }
-      });
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyC2aWDHltsNHS2_AoE5WAwW53OyqeItl4g";
     }
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        email: enteredMail,
+        password: enteredPassword,
+        returnSecureToken: true,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => {
+      setIsLoading(false);
+      if (res.ok) {
+        return res.json()
+      } else {
+        return res.json().then((data) => {
+          let errorMessage = "Authentication Failed!!";
+          if (data && data.error && data.error.message) {
+            errorMessage = data.error.message;
+          }
+          throw new Error(errorMessage)
+        });
+      }
+    }).then((data)=> console.log(data))
+    .catch((err)=> 
+    alert(err.message)
+    );
   };
 
   return (
@@ -63,7 +69,9 @@ const AuthForm = () => {
           <input type="password" id="password" ref={passwordRef} required />
         </div>
         <div className={classes.actions}>
-          {!isLoading &&<button>{isLogin ? "Login" : "Create Account"}</button>}
+          {!isLoading && (
+            <button>{isLogin ? "Login" : "Create Account"}</button>
+          )}
           {isLoading && <p>Loading...</p>}
           <button
             type="button"
